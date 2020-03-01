@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">RealmDB</string>
+    <string name="edit_text">Input the actor name</string>
+    <string name="insert_button">Insert Data</string>
+    <string name="update_button">Update Data</string>
+    <string name="delete_button">Delete Data</string>
+</resources>
