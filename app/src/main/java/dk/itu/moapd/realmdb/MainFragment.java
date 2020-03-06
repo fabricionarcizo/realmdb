@@ -46,7 +46,7 @@ public class MainFragment extends Fragment {
         insertButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mRealm.executeTransaction(new Realm.Transaction() {
+                mRealm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(@NonNull Realm realm) {
                         String text = mEditText.getText().toString();
@@ -56,6 +56,7 @@ public class MainFragment extends Fragment {
                             ActorName actorName = new ActorName(id.intValue()+1, text);
                             realm.copyToRealm(actorName);
                             mEditText.setText("");
+                            mActorName = null;
                         }
                     }
                 });
@@ -66,17 +67,19 @@ public class MainFragment extends Fragment {
         updateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mRealm.executeTransaction(new Realm.Transaction() {
+                final int id = (mActorName != null) ? mActorName.getId() : -1;
+                mRealm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(@NonNull Realm realm) {
                         String text = mEditText.getText().toString();
-                        if (!text.isEmpty()) {
-                            if (mActorName != null) {
-                                mActorName.setName(text);
-                                realm.copyToRealm(mActorName);
-                                mEditText.setText("");
-                                mActorName = null;
-                            }
+                        if (!text.isEmpty() && id != -1) {
+                            ActorName actorName = realm.where(ActorName.class)
+                                    .equalTo("id", id).findFirst();
+                            assert actorName != null;
+                            actorName.setName(text);
+                            realm.copyToRealm(actorName);
+                            mEditText.setText("");
+                            mActorName = null;
                         }
                     }
                 });
@@ -87,11 +90,15 @@ public class MainFragment extends Fragment {
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mRealm.executeTransaction(new Realm.Transaction() {
+                final int id = (mActorName != null) ? mActorName.getId() : -1;
+                mRealm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(@NonNull Realm realm) {
-                        if (mActorName != null) {
-                            mActorName.deleteFromRealm();
+                        if (id != -1) {
+                            ActorName actorName = realm.where(ActorName.class)
+                                    .equalTo("id", id).findFirst();
+                            assert actorName != null;
+                            actorName.deleteFromRealm();
                             mEditText.setText("");
                             mActorName = null;
                         }
@@ -125,7 +132,6 @@ public class MainFragment extends Fragment {
         @Override
         public ActorNameHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_actor_name, parent, false);
-            //itemView = view;
             return new ActorNameHolder(view);
         }
 
